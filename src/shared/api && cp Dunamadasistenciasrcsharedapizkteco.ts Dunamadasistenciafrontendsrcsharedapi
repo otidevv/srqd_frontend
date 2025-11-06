@@ -1,0 +1,54 @@
+/**
+ * Schedules API
+ * Handles work schedules and shifts management
+ */
+
+import { apiClient } from "./client";
+import type { Schedule, CreateScheduleDTO, UpdateScheduleDTO } from "@/entities/schedule";
+
+export const schedulesApi = {
+  /**
+   * Get all schedules
+   */
+  getSchedules: async (): Promise<Schedule[]> => {
+    return apiClient.get<Schedule[]>("/schedules");
+  },
+
+  /**
+   * Get schedule by ID
+   */
+  getSchedule: async (id: string): Promise<Schedule> => {
+    return apiClient.get<Schedule>(`/schedules/${id}`);
+  },
+
+  /**
+   * Create new schedule
+   */
+  createSchedule: async (data: CreateScheduleDTO): Promise<Schedule> => {
+    return apiClient.post<Schedule>("/schedules", data);
+  },
+
+  /**
+   * Update schedule
+   */
+  updateSchedule: async (
+    id: string,
+    data: UpdateScheduleDTO
+  ): Promise<Schedule> => {
+    return apiClient.patch<Schedule>(`/schedules/${id}`, data);
+  },
+
+  /**
+   * Delete schedule
+   */
+  deleteSchedule: async (id: string): Promise<void> => {
+    return apiClient.delete<void>(`/schedules/${id}`);
+  },
+
+  /**
+   * Get workers assigned to a schedule
+   */
+  getScheduleWorkers: async (scheduleId: string): Promise<string[]> => {
+    return apiClient.get<string[]>(`/schedules/${scheduleId}/workers`);
+  },
+};

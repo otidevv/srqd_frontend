@@ -1,0 +1,1 @@
+export { ConsultaPublicaPage } from './ConsultaPublicaPage'
