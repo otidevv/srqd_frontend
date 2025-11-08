@@ -19,20 +19,32 @@ export function FormsSection() {
   }
 
   return (
-    <section id="formularios" className="py-16 bg-background">
-      <div className="container mx-auto px-4">
+    <section
+      id="formularios"
+      className="py-16 relative bg-background"
+      style={{
+        backgroundImage: 'url(/img/unamad/pabellonb.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay oscuro para mejorar legibilidad */}
+      <div className="absolute inset-0 bg-black/60"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-white/90 px-4 py-2 rounded-full mb-4">
               <FileText className="h-5 w-5 text-primary" />
               <span className="text-sm font-semibold text-primary">SISTEMA DE REGISTRO</span>
             </div>
-            <h2 className="text-4xl font-bold mb-4">
+            <h2 className="text-4xl font-bold mb-4 text-white">
               Formularios de Registro
             </h2>
-            <div className="h-1 w-24 bg-primary mx-auto rounded-full mb-4"></div>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <div className="h-1 w-24 bg-white mx-auto rounded-full mb-4"></div>
+            <p className="text-white/90 max-w-2xl mx-auto text-lg">
               Selecciona el tipo de caso que deseas registrar en nuestro sistema
             </p>
           </div>
@@ -158,7 +170,7 @@ export function FormsSection() {
           </div>
 
           {/* Info Box */}
-          <div className="mt-8 bg-primary/5 border border-primary/20 rounded-lg p-6">
+          <div className="mt-8 bg-white border-l-4 border-primary rounded-lg p-6 shadow-lg">
             <div className="flex items-start gap-3">
               <FileText className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
               <div className="text-sm">
@@ -166,7 +178,7 @@ export function FormsSection() {
                 <ul className="text-muted-foreground space-y-1">
                   <li>• Ten a mano tu documento de identidad en formato digital</li>
                   <li>• Prepara la descripción detallada de los hechos</li>
-                  <li>• Sube tus pruebas a Google Drive y obtén el enlace compartido</li>
+                  <li>• Prepara las pruebas documentales que respalden tu caso (PDF, imágenes)</li>
                   <li>• El proceso toma aproximadamente 10-15 minutos</li>
                 </ul>
               </div>

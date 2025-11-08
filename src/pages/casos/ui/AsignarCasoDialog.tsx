@@ -57,7 +57,7 @@ export function AsignarCasoDialog({
       const allUsers = await usersApi.getUsers()
       // Filter to only show active admins and supervisors
       const eligibleUsers = allUsers.filter(
-        user => user.status === "active" && (user.role === "admin" || user.role === "supervisor")
+        user => user.status === "active" && (user.role?.name === "Administrador" || user.role?.name === "Supervisor")
       )
       setUsers(eligibleUsers)
     } catch (error) {
@@ -162,7 +162,7 @@ export function AsignarCasoDialog({
                       <IconUser className="size-4" />
                       <span>{user.name}</span>
                       <Badge variant="outline" className="ml-auto text-xs">
-                        {user.role === "admin" ? "Admin" : "Supervisor"}
+                        {user.role?.name}
                       </Badge>
                     </div>
                   </SelectItem>

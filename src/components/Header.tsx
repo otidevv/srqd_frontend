@@ -147,6 +147,38 @@ export function Header() {
                     <LogIn className="h-4 w-4 mr-2" />
                     Iniciar Sesión
                   </Button>
+
+                  {/* Imágenes UNAMAD */}
+                  <div className="mt-6 space-y-4">
+                    <div className="rounded-lg overflow-hidden shadow-md">
+                      <img
+                        src="/img/unamad/unamadprincipal.jpg"
+                        alt="Universidad UNAMAD"
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                    <div className="rounded-lg overflow-hidden shadow-md">
+                      <img
+                        src="/img/unamad/pabellona.jpg"
+                        alt="Pabellón A UNAMAD"
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                    <div className="rounded-lg overflow-hidden shadow-md">
+                      <img
+                        src="/img/unamad/pabellonb.jpg"
+                        alt="Pabellón B UNAMAD"
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                    <div className="rounded-lg overflow-hidden shadow-md">
+                      <img
+                        src="/img/unamad/unamad.jpg"
+                        alt="Campus UNAMAD"
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>

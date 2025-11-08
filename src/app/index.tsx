@@ -4,16 +4,21 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProviders } from "./providers";
 import App from "@/App";
 import { LoginPage } from "@/pages/login";
+import { ForgotPasswordPage } from "@/pages/forgot-password";
+import { ResetPasswordPage } from "@/pages/reset-password";
 import { DashboardPage } from "@/pages/dashboard";
 import { CasosPage, CasoDetailPage } from "@/pages/casos";
 import { ConsultaPage } from "@/pages/consulta";
 import { ConsultaPublicaPage } from "@/pages/consulta-publica";
 import { StatsPage } from "@/pages/stats";
 import { UsersPage } from "@/pages/users";
+import { ProfilePage } from "@/pages/profile";
+import { ChangePasswordPage } from "@/pages/change-password";
 import { RolesPage } from "@/pages/admin/roles";
 import { SedesPage } from "@/pages/admin/sedes";
 import { DependenciasPage } from "@/pages/admin/dependencias";
 import { PublicacionesPage } from "@/pages/admin/publicaciones";
+import { UnauthorizedPage } from "@/pages/unauthorized";
 import { ProtectedRoute } from "@/shared/lib";
 import "./styles/global.css";
 
@@ -25,7 +30,10 @@ createRoot(document.getElementById("root")!).render(
           {/* Public routes */}
           <Route path="/" element={<App />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           <Route path="/consulta-publica" element={<ConsultaPublicaPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Protected routes */}
           <Route
@@ -41,7 +49,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/casos"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "casos", action: "read" }}>
                 <CasosPage />
               </ProtectedRoute>
             }
@@ -49,7 +57,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/casos/:id"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "casos", action: "read" }}>
                 <CasoDetailPage />
               </ProtectedRoute>
             }
@@ -67,8 +75,26 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/estadisticas"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "estadisticas", action: "read" }}>
                 <StatsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Profile routes */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePasswordPage />
               </ProtectedRoute>
             }
           />
@@ -80,7 +106,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/admin/users"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "users", action: "read" }}>
                 <UsersPage />
               </ProtectedRoute>
             }
@@ -88,7 +114,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/admin/roles"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "roles", action: "read" }}>
                 <RolesPage />
               </ProtectedRoute>
             }
@@ -96,7 +122,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/admin/sedes"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "sedes", action: "read" }}>
                 <SedesPage />
               </ProtectedRoute>
             }
@@ -104,7 +130,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/admin/dependencias"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "dependencias", action: "read" }}>
                 <DependenciasPage />
               </ProtectedRoute>
             }
@@ -112,7 +138,7 @@ createRoot(document.getElementById("root")!).render(
           <Route
             path="/admin/publicaciones"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requiredPermission={{ module: "publicaciones", action: "read" }}>
                 <PublicacionesPage />
               </ProtectedRoute>
             }

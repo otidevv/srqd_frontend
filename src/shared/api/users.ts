@@ -4,7 +4,7 @@
  */
 
 import { apiClient, type ApiResponse } from './client';
-import type { User, CreateUserDTO, UpdateUserDTO } from "@/entities/user";
+import type { User, CreateUserDTO, UpdateUserDTO, UpdateProfileDTO, ChangePasswordDTO } from "@/entities/user";
 
 class UsersApi {
   /**
@@ -12,10 +12,9 @@ class UsersApi {
    */
   async getUsers(): Promise<User[]> {
     const response = await apiClient.get<ApiResponse<User[]>>('/users');
-    // Convert backend enum values (uppercase) to frontend format (lowercase)
+    // Convert backend status enum (uppercase) to frontend format (lowercase)
     return response.data.map(user => ({
       ...user,
-      role: user.role.toLowerCase() as any,
       status: user.status.toLowerCase() as any,
     }));
   }
@@ -27,10 +26,9 @@ class UsersApi {
     try {
       const response = await apiClient.get<ApiResponse<User>>(`/users/${id}`);
       const user = response.data;
-      // Convert backend enum values (uppercase) to frontend format (lowercase)
+      // Convert backend status enum (uppercase) to frontend format (lowercase)
       return {
         ...user,
-        role: user.role.toLowerCase() as any,
         status: user.status.toLowerCase() as any,
       };
     } catch {
@@ -42,20 +40,18 @@ class UsersApi {
    * Create new user
    */
   async createUser(data: CreateUserDTO): Promise<User> {
-    // Convert frontend enum values (lowercase) to backend format (uppercase)
+    // Convert frontend status (lowercase) to backend format (uppercase)
     const backendData = {
       ...data,
-      role: data.role?.toUpperCase() as any,
       status: data.status?.toUpperCase() as any,
     };
 
     const response = await apiClient.post<ApiResponse<User>>('/users', backendData);
 
-    // Convert backend response (uppercase) to frontend format (lowercase)
+    // Convert backend status (uppercase) to frontend format (lowercase)
     const user = response.data;
     return {
       ...user,
-      role: user.role.toLowerCase() as any,
       status: user.status.toLowerCase() as any,
     };
   }
@@ -64,20 +60,18 @@ class UsersApi {
    * Update user
    */
   async updateUser(id: string, data: UpdateUserDTO): Promise<User> {
-    // Convert frontend enum values (lowercase) to backend format (uppercase)
+    // Convert frontend status (lowercase) to backend format (uppercase)
     const backendData = {
       ...data,
-      role: data.role?.toUpperCase() as any,
       status: data.status?.toUpperCase() as any,
     };
 
     const response = await apiClient.patch<ApiResponse<User>>(`/users/${id}`, backendData);
 
-    // Convert backend response (uppercase) to frontend format (lowercase)
+    // Convert backend status (uppercase) to frontend format (lowercase)
     const user = response.data;
     return {
       ...user,
-      role: user.role.toLowerCase() as any,
       status: user.status.toLowerCase() as any,
     };
   }
@@ -87,6 +81,37 @@ class UsersApi {
    */
   async deleteUser(id: string): Promise<void> {
     await apiClient.delete<ApiResponse>(`/users/${id}`);
+  }
+
+  /**
+   * Get current user profile
+   */
+  async getProfile(): Promise<User> {
+    const response = await apiClient.get<ApiResponse<User>>('/users/profile');
+    const user = response.data;
+    return {
+      ...user,
+      status: user.status.toLowerCase() as any,
+    };
+  }
+
+  /**
+   * Update current user profile
+   */
+  async updateProfile(data: UpdateProfileDTO): Promise<User> {
+    const response = await apiClient.patch<ApiResponse<User>>('/users/profile', data);
+    const user = response.data;
+    return {
+      ...user,
+      status: user.status.toLowerCase() as any,
+    };
+  }
+
+  /**
+   * Change current user password
+   */
+  async changePassword(data: ChangePasswordDTO): Promise<void> {
+    await apiClient.post<ApiResponse>('/users/change-password', data);
   }
 }
 
@@ -99,4 +124,7 @@ export const {
   createUser,
   updateUser,
   deleteUser,
+  getProfile,
+  updateProfile,
+  changePassword,
 } = usersApi;

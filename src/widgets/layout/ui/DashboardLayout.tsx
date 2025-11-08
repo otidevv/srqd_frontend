@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { useAuth } from "@/app/providers";
 import { useNavigate, useLocation } from "react-router-dom";
 import { UNIVERSITY_CONFIG } from "@/shared/config";
+import { usePermissions } from "@/shared/lib";
 import {
   IconDashboard,
   IconUserCog,
@@ -60,28 +61,20 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
   };
 
   const { branding, shortName } = UNIVERSITY_CONFIG;
+  const { canAccessAdmin, hasPermission } = usePermissions();
 
   const [adminOpen, setAdminOpen] = useState(true);
 
-  // Check if user is admin
-  const isAdmin = user?.role === "admin";
+  // Check if user can access any admin module
+  const showAdminSection = canAccessAdmin();
 
-  // Navigation items adapted for SRQD system
+  // Navigation items adapted for SRQD system - with permission checks
   const navItems = [
-    { title: "Dashboard", icon: IconDashboard, url: "/dashboard" },
-    { title: "Casos SRQD", icon: IconFileText, url: "/casos" },
-    { title: "Consulta Pública", icon: IconSearch, url: "/consulta" },
-    { title: "Estadísticas y Reportes", icon: IconReportAnalytics, url: "/estadisticas" },
-  ];
-
-  // Admin sub-menu items
-  const adminItems = [
-    { title: "Usuarios", icon: IconUserCog, url: "/admin/users" },
-    { title: "Roles y Privilegios", icon: IconShield, url: "/admin/roles" },
-    { title: "Sedes", icon: IconBuilding, url: "/admin/sedes" },
-    { title: "Dependencias", icon: IconBuildingCommunity, url: "/admin/dependencias" },
-    { title: "Publicaciones", icon: IconSpeakerphone, url: "/admin/publicaciones" },
-  ];
+    { title: "Dashboard", icon: IconDashboard, url: "/dashboard", show: true },
+    { title: "Casos SRQD", icon: IconFileText, url: "/casos", show: hasPermission("casos", "read") },
+    { title: "Consulta Pública", icon: IconSearch, url: "/consulta", show: true },
+    { title: "Estadísticas y Reportes", icon: IconReportAnalytics, url: "/estadisticas", show: hasPermission("estadisticas", "read") },
+  ].filter(item => item.show);
 
   return (
     <SidebarProvider>
@@ -131,8 +124,8 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
               );
             })}
 
-            {/* Admin Section - Only for admins */}
-            {isAdmin && (
+            {/* Admin Section - Only for users with admin permissions */}
+            {showAdminSection && (
               <Collapsible open={adminOpen} onOpenChange={setAdminOpen} className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -144,19 +137,56 @@ export function DashboardLayout({ children, title, subtitle }: DashboardLayoutPr
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {adminItems.map((item) => {
-                        const isActive = location.pathname === item.url;
-                        return (
-                          <SidebarMenuSubItem key={item.title}>
-                            <SidebarMenuSubButton asChild isActive={isActive}>
-                              <a href={item.url}>
-                                <item.icon className="size-4" />
-                                <span>{item.title}</span>
-                              </a>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        );
-                      })}
+                      {hasPermission('users', 'read') && (
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={location.pathname === "/admin/users"}>
+                            <a href="/admin/users">
+                              <IconUserCog className="size-4" />
+                              <span>Usuarios</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
+                      {hasPermission('roles', 'read') && (
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={location.pathname === "/admin/roles"}>
+                            <a href="/admin/roles">
+                              <IconShield className="size-4" />
+                              <span>Roles y Privilegios</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
+                      {hasPermission('sedes', 'read') && (
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={location.pathname === "/admin/sedes"}>
+                            <a href="/admin/sedes">
+                              <IconBuilding className="size-4" />
+                              <span>Sedes</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
+                      {hasPermission('dependencias', 'read') && (
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={location.pathname === "/admin/dependencias"}>
+                            <a href="/admin/dependencias">
+                              <IconBuildingCommunity className="size-4" />
+                              <span>Dependencias</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
+                      {hasPermission('publicaciones', 'read') && (
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild isActive={location.pathname === "/admin/publicaciones"}>
+                            <a href="/admin/publicaciones">
+                              <IconSpeakerphone className="size-4" />
+                              <span>Publicaciones</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      )}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>

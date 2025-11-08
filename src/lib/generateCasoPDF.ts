@@ -11,6 +11,10 @@ interface GeneratePDFOptions {
   firmaDataUrl?: string | null
 }
 
+// Cache global para logos (evita cargar en cada PDF)
+let cachedLogoUnamad: string | null = null
+let cachedLogoDefensoria: string | null = null
+
 /**
  * Convierte un archivo de imagen a base64
  */
@@ -43,6 +47,28 @@ async function loadImageAsBase64(url: string): Promise<string> {
 }
 
 /**
+ * Carga los logos con caché para mejorar rendimiento
+ */
+async function loadLogosWithCache(): Promise<{ logoUnamad: string; logoDefensoria: string }> {
+  // Cargar logo UNAMAD si no está en caché
+  if (!cachedLogoUnamad) {
+    const logoUnamadUrl = '/img/logo/logo_withe_shadow.png'
+    cachedLogoUnamad = await loadImageAsBase64(logoUnamadUrl)
+  }
+
+  // Cargar logo Defensoría si no está en caché
+  if (!cachedLogoDefensoria) {
+    const logoDefensoriaUrl = '/img/logo/logo_defensoria.png'
+    cachedLogoDefensoria = await loadImageAsBase64(logoDefensoriaUrl)
+  }
+
+  return {
+    logoUnamad: cachedLogoUnamad,
+    logoDefensoria: cachedLogoDefensoria
+  }
+}
+
+/**
  * Genera un PDF con los datos del caso SRQD
  */
 export async function generateCasoPDF({ caso, firmaDataUrl }: GeneratePDFOptions): Promise<Blob> {
@@ -59,17 +85,15 @@ export async function generateCasoPDF({ caso, firmaDataUrl }: GeneratePDFOptions
   doc.setFillColor(...primaryColor)
   doc.rect(0, 0, pageWidth, 45, 'F')
 
-  // Cargar y agregar logos
+  // Cargar y agregar logos (con caché para optimizar)
   try {
+    const { logoUnamad, logoDefensoria } = await loadLogosWithCache()
+
     // Logo UNAMAD a la izquierda
-    const logoUnamadUrl = '/img/logo/logo_withe_shadow.png'
-    const logoUnamadBase64 = await loadImageAsBase64(logoUnamadUrl)
-    doc.addImage(logoUnamadBase64, 'PNG', 10, 8, 25, 25)
+    doc.addImage(logoUnamad, 'PNG', 10, 8, 25, 25)
 
     // Logo Defensoría a la derecha
-    const logoDefensoriaUrl = '/img/logo/logo_defensoria.png'
-    const logoDefensoriaBase64 = await loadImageAsBase64(logoDefensoriaUrl)
-    doc.addImage(logoDefensoriaBase64, 'PNG', pageWidth - 35, 8, 25, 25)
+    doc.addImage(logoDefensoria, 'PNG', pageWidth - 35, 8, 25, 25)
 
     // Texto centrado
     doc.setTextColor(255, 255, 255)

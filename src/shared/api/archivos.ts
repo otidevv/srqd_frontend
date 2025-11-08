@@ -28,18 +28,10 @@ export async function uploadFile(
   onProgress?: (progress: number) => void
 ): Promise<UploadFileResult> {
   try {
-    console.log('Uploading file:', file.name, 'Size:', file.size, 'Type:', file.type, 'Category:', categoria);
-
     const formData = new FormData();
     formData.append('file', file);
     if (categoria) {
       formData.append('categoria', categoria);
-    }
-
-    // Verify FormData content
-    console.log('FormData entries:');
-    for (const pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
     }
 
     const response = await apiClient.post<UploadFileResult>(
@@ -57,19 +49,9 @@ export async function uploadFile(
       }
     );
 
-    console.log('Upload response:', response);
-    console.log('Upload response.data:', response.data);
-
     return response;
   } catch (error: any) {
-    console.error('========== ERROR UPLOADING FILE ==========');
-    console.error('File name:', file.name);
-    console.error('Error object:', error);
-    console.error('Error message:', error.message);
-    console.error('Error response:', error.response);
-    console.error('Error response data:', error.response?.data);
-    console.error('Error response status:', error.response?.status);
-    console.error('==========================================');
+    console.error('Error uploading file:', file.name, error.message);
 
     const errorMessage = error.response?.data?.message ||
                         error.message ||
@@ -92,8 +74,6 @@ export async function uploadPublicacionFile(
   onProgress?: (progress: number) => void
 ): Promise<UploadFileResult> {
   try {
-    console.log('Uploading publicacion file:', file.name, 'Size:', file.size, 'Type:', file.type, 'Category:', categoria);
-
     const formData = new FormData();
     formData.append('file', file);
     formData.append('categoria', categoria);
@@ -154,15 +134,28 @@ export async function uploadFiles(
     errors: [] as string[],
   };
 
-  for (let i = 0; i < filesWithCategories.length; i++) {
-    const { file, categoria } = filesWithCategories[i];
+  // Paralelizar subida de archivos para mayor velocidad
+  const uploadPromises = filesWithCategories.map(({ file, categoria }, index) =>
+    uploadFile(casoId, file, categoria)
+      .then(result => {
+        if (onProgress) {
+          onProgress(index + 1, filesWithCategories.length, file.name);
+        }
+        return { file, result };
+      })
+      .catch(error => ({
+        file,
+        result: {
+          success: false,
+          error: error.message || 'Error desconocido'
+        }
+      }))
+  );
 
-    if (onProgress) {
-      onProgress(i + 1, filesWithCategories.length, file.name);
-    }
+  const uploadResults = await Promise.all(uploadPromises);
 
-    const result = await uploadFile(casoId, file, categoria);
-
+  // Procesar resultados
+  uploadResults.forEach(({ file, result }) => {
     if (result.success) {
       results.uploaded++;
     } else {
@@ -170,7 +163,7 @@ export async function uploadFiles(
       results.success = false;
       results.errors.push(`${file.name}: ${result.error || 'Error desconocido'}`);
     }
-  }
+  });
 
   return results;
 }

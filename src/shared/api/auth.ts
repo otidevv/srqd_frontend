@@ -24,6 +24,11 @@ export interface LoginResponse {
   token: string;
 }
 
+export interface PasswordResetResponse {
+  success: boolean;
+  message: string;
+}
+
 class AuthApi {
   /**
    * Login with email and password
@@ -76,6 +81,30 @@ class AuthApi {
    */
   getToken(): string | null {
     return localStorage.getItem('auth_token');
+  }
+
+  /**
+   * Request password reset - sends email with reset link
+   */
+  async requestPasswordReset(email: string): Promise<PasswordResetResponse> {
+    return await apiClient.post<PasswordResetResponse>('/auth/forgot-password', { email });
+  }
+
+  /**
+   * Validate reset token
+   */
+  async validateResetToken(token: string): Promise<PasswordResetResponse> {
+    return await apiClient.get<PasswordResetResponse>(`/auth/validate-reset-token/${token}`);
+  }
+
+  /**
+   * Reset password with token
+   */
+  async resetPassword(token: string, password: string): Promise<PasswordResetResponse> {
+    return await apiClient.post<PasswordResetResponse>('/auth/reset-password', {
+      token,
+      password,
+    });
   }
 }
 

@@ -55,9 +55,22 @@ import {
 } from "@tanstack/react-table"
 
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   Badge,
   Button,
   Checkbox,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -78,9 +91,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/shared/ui'
+import { toast } from 'sonner'
 
-import { type Sede } from "@/entities/sede"
+import { type Sede, type CreateSedeDTO, type UpdateSedeDTO } from "@/entities/sede"
 import { sedesApi } from "@/shared/api"
+import { SedeForm } from "./SedeForm"
 
 function DragHandle({ id }: { id: string }) {
   const { attributes, listeners } = useSortable({ id })
@@ -122,110 +137,85 @@ const columns: ColumnDef<Sede>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "code",
-    header: "Código",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <IconBuilding className="size-4 text-muted-foreground" />
-        <span className="font-mono font-medium">{row.original.code}</span>
-      </div>
-    ),
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
+    accessorKey: "nombre",
     header: "Nombre",
     cell: ({ row }) => {
       return (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.original.name}</span>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <IconMapPin className="size-3" />
-            <span>{row.original.city}, {row.original.region}</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <IconBuilding className="size-4 text-muted-foreground" />
+          <span className="font-medium">{row.original.nombre}</span>
         </div>
       )
     },
     enableHiding: false,
   },
   {
-    accessorKey: "address",
+    accessorKey: "direccion",
     header: "Dirección",
     cell: ({ row }) => (
-      <div className="text-sm max-w-[200px] truncate" title={row.original.address}>
-        {row.original.address}
+      <div className="text-sm max-w-[200px] truncate" title={row.original.direccion}>
+        {row.original.direccion || <span className="text-muted-foreground">Sin dirección</span>}
       </div>
     ),
   },
   {
-    accessorKey: "contact",
-    header: "Contacto",
+    accessorKey: "telefono",
+    header: "Teléfono",
     cell: ({ row }) => (
-      <div className="flex flex-col gap-1 text-xs">
-        <div className="flex items-center gap-1">
-          <IconPhone className="size-3 text-muted-foreground" />
-          <span>{row.original.phone}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <IconMail className="size-3 text-muted-foreground" />
-          <span>{row.original.email}</span>
-        </div>
+      <div className="flex items-center gap-1 text-sm">
+        <IconPhone className="size-3 text-muted-foreground" />
+        <span>{row.original.telefono || <span className="text-muted-foreground">Sin teléfono</span>}</span>
       </div>
     ),
   },
   {
-    accessorKey: "managerName",
-    header: "Responsable",
+    accessorKey: "email",
+    header: "Email",
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        {row.original.managerName ? (
-          <>
-            <IconUser className="size-4 text-muted-foreground" />
-            <span className="text-sm">{row.original.managerName}</span>
-          </>
-        ) : (
-          <span className="text-sm text-muted-foreground">Sin asignar</span>
-        )}
+      <div className="flex items-center gap-1 text-sm">
+        <IconMail className="size-3 text-muted-foreground" />
+        <span>{row.original.email || <span className="text-muted-foreground">Sin email</span>}</span>
       </div>
     ),
   },
   {
-    accessorKey: "isActive",
+    accessorKey: "activo",
     header: "Estado",
     cell: ({ row }) => (
-      <Badge variant={row.original.isActive ? "default" : "outline"}>
-        {row.original.isActive ? <IconCheck className="size-3 mr-1" /> : <IconX className="size-3 mr-1" />}
-        {row.original.isActive ? "Activa" : "Inactiva"}
+      <Badge variant={row.original.activo ? "default" : "outline"}>
+        {row.original.activo ? <IconCheck className="size-3 mr-1" /> : <IconX className="size-3 mr-1" />}
+        {row.original.activo ? "Activa" : "Inactiva"}
       </Badge>
     ),
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon">
-            <IconDotsVertical />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem>
-            <IconEdit className="size-4 mr-2" />
-            Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <IconUser className="size-4 mr-2" />
-            Asignar Responsable
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">
-            <IconTrash className="size-4 mr-2" />
-            Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row, table }) => {
+      const sede = row.original
+      const meta = table.options.meta as any
+
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="data-[state=open]:bg-muted text-muted-foreground flex size-8" size="icon">
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem onClick={() => meta?.onEditSede?.(sede)}>
+              <IconEdit className="size-4 mr-2" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={() => meta?.onDeleteSede?.(sede)}>
+              <IconTrash className="size-4 mr-2" />
+              Eliminar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
+    },
   },
 ]
 
@@ -259,20 +249,95 @@ export function SedesDataTable() {
   const sortableId = React.useId()
   const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
 
-  React.useEffect(() => {
-    const loadSedes = async () => {
-      setLoading(true)
-      try {
-        const sedes = await sedesApi.getSedes()
-        setData(sedes)
-      } catch (error) {
-        console.error("Error loading sedes:", error)
-      } finally {
-        setLoading(false)
-      }
+  // Dialog states
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = React.useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false)
+  const [selectedSede, setSelectedSede] = React.useState<Sede | null>(null)
+
+  const loadSedes = React.useCallback(async () => {
+    setLoading(true)
+    try {
+      const sedes = await sedesApi.getSedes()
+      setData(sedes)
+    } catch (error) {
+      console.error("Error loading sedes:", error)
+      toast.error("Error al cargar sedes", {
+        description: (error as any).message || "Ocurrió un error inesperado"
+      })
+    } finally {
+      setLoading(false)
     }
-    loadSedes()
   }, [])
+
+  React.useEffect(() => {
+    loadSedes()
+  }, [loadSedes])
+
+  // CRUD Handlers
+  const handleCreateSede = async (data: CreateSedeDTO) => {
+    try {
+      await sedesApi.createSede(data)
+      setIsCreateDialogOpen(false)
+      await loadSedes()
+      toast.success("Sede creada exitosamente", {
+        description: `La sede ${data.name} ha sido creada correctamente`
+      })
+    } catch (error) {
+      console.error("Error creating sede:", error)
+      toast.error("Error al crear sede", {
+        description: (error as any).message || "Ocurrió un error inesperado"
+      })
+      throw error
+    }
+  }
+
+  const handleEditSede = (sede: Sede) => {
+    setSelectedSede(sede)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateSede = async (data: UpdateSedeDTO) => {
+    if (!selectedSede) return
+    try {
+      await sedesApi.updateSede(selectedSede.id, data)
+      setIsEditDialogOpen(false)
+      setSelectedSede(null)
+      await loadSedes()
+      toast.success("Sede actualizada exitosamente", {
+        description: `La sede ha sido actualizada correctamente`
+      })
+    } catch (error) {
+      console.error("Error updating sede:", error)
+      toast.error("Error al actualizar sede", {
+        description: (error as any).message || "Ocurrió un error inesperado"
+      })
+      throw error
+    }
+  }
+
+  const handleDeleteClick = (sede: Sede) => {
+    setSelectedSede(sede)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!selectedSede) return
+    try {
+      await sedesApi.deleteSede(selectedSede.id)
+      setIsDeleteDialogOpen(false)
+      setSelectedSede(null)
+      await loadSedes()
+      toast.success("Sede eliminada exitosamente", {
+        description: `La sede ${selectedSede.name} ha sido eliminada`
+      })
+    } catch (error) {
+      console.error("Error deleting sede:", error)
+      toast.error("Error al eliminar sede", {
+        description: (error as any).message || "Ocurrió un error inesperado"
+      })
+    }
+  }
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(() => data?.map(({ id }) => id) || [], [data])
 
@@ -293,6 +358,10 @@ export function SedesDataTable() {
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    meta: {
+      onEditSede: handleEditSede,
+      onDeleteSede: handleDeleteClick,
+    },
   })
 
   function handleDragEnd(event: DragEndEvent) {
@@ -312,8 +381,8 @@ export function SedesDataTable() {
     <div className="w-full flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="flex flex-1 items-center gap-2">
-          <Input placeholder="Buscar por nombre o ciudad..." value={(table.getColumn("name")?.getFilterValue() as string) ?? ""} onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)} className="max-w-sm" />
-          <Select value={(table.getColumn("isActive")?.getFilterValue() as string) ?? "all"} onValueChange={(value) => table.getColumn("isActive")?.setFilterValue(value === "all" ? "" : value === "true")}>
+          <Input placeholder="Buscar por nombre..." value={(table.getColumn("nombre")?.getFilterValue() as string) ?? ""} onChange={(event) => table.getColumn("nombre")?.setFilterValue(event.target.value)} className="max-w-sm" />
+          <Select value={(table.getColumn("activo")?.getFilterValue() as string) ?? "all"} onValueChange={(value) => table.getColumn("activo")?.setFilterValue(value === "all" ? "" : value === "true")}>
             <SelectTrigger className="w-[180px]"><SelectValue placeholder="Filtrar por estado" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
@@ -333,7 +402,7 @@ export function SedesDataTable() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm"><IconPlus /><span className="hidden lg:inline">Nueva Sede</span></Button>
+          <Button size="sm" onClick={() => setIsCreateDialogOpen(true)}><IconPlus /><span className="hidden lg:inline">Nueva Sede</span></Button>
         </div>
       </div>
 
@@ -381,6 +450,65 @@ export function SedesDataTable() {
           </div>
         </div>
       </div>
+
+      {/* Create Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nueva Sede</DialogTitle>
+            <DialogDescription>
+              Ingresa los datos de la nueva sede
+            </DialogDescription>
+          </DialogHeader>
+          <SedeForm
+            onSubmit={handleCreateSede}
+            onCancel={() => setIsCreateDialogOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Sede</DialogTitle>
+            <DialogDescription>
+              Modifica los datos de la sede
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSede && (
+            <SedeForm
+              sede={selectedSede}
+              onSubmit={handleUpdateSede}
+              onCancel={() => {
+                setIsEditDialogOpen(false)
+                setSelectedSede(null)
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará la sede{" "}
+              <span className="font-semibold">{selectedSede?.name}</span> permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSelectedSede(null)}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

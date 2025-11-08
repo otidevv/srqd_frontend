@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button, Input, Label, Card, CardHeader, CardContent, CardDescription, CardTitle } from "@/shared/ui";
 import { useAuth } from "@/app/providers";
 import { UNIVERSITY_CONFIG } from "@/shared/config";
@@ -105,13 +106,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
           {/* Forgot password link */}
           <div className="flex justify-end">
-            <a
-              href="#"
+            <Link
+              to="/forgot-password"
               className="text-sm hover:underline"
               style={{ color: branding.primaryColor }}
             >
               ¿Olvidaste tu contraseña?
-            </a>
+            </Link>
           </div>
 
           {/* Submit button */}

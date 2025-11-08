@@ -49,6 +49,24 @@ class RolesApi {
   async deleteRole(id: string): Promise<void> {
     await apiClient.delete<ApiResponse>(`/roles/${id}`);
   }
+
+  /**
+   * Update role permissions only
+   */
+  async updateRolePermissions(id: string, permissions: Record<string, string[]>): Promise<Role> {
+    const response = await apiClient.patch<ApiResponse<Role>>(`/roles/${id}/permissions`, {
+      permissions,
+    });
+    return response.data;
+  }
+
+  /**
+   * Get role with assigned users
+   */
+  async getRoleWithUsers(id: string): Promise<Role & { users: any[] }> {
+    const response = await apiClient.get<ApiResponse<Role & { users: any[] }>>(`/roles/${id}/users`);
+    return response.data;
+  }
 }
 
 export const rolesApi = new RolesApi();
@@ -60,4 +78,6 @@ export const {
   createRole,
   updateRole,
   deleteRole,
+  updateRolePermissions,
+  getRoleWithUsers,
 } = rolesApi;

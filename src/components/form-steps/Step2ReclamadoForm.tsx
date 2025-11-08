@@ -154,11 +154,19 @@ export function Step2ReclamadoForm({ formData, onNext, onPrevious }: Step2Props)
             <Label>Departamento Académico</Label>
             <Select onValueChange={(value) => setValue('departamentoReclamado', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Seleccione" />
+                <SelectValue placeholder="Seleccione departamento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="sistemas">Sistemas</SelectItem>
-                <SelectItem value="forestal">Forestal</SelectItem>
+                <SelectItem value="sistemas">Sistemas e Informática</SelectItem>
+                <SelectItem value="agroindustrial">Agroindustrial</SelectItem>
+                <SelectItem value="forestal">Forestal y Medio Ambiente</SelectItem>
+                <SelectItem value="ciencias_basicas">Ciencias Básicas</SelectItem>
+                <SelectItem value="veterinaria">Veterinaria y Zootecnia</SelectItem>
+                <SelectItem value="dep_admi_conta">Departamento de Administración y Contabilidad</SelectItem>
+                <SelectItem value="ecoturismo">Ecoturismo</SelectItem>
+                <SelectItem value="educacion">Educación (Inicial, Matemática y Primaria)</SelectItem>
+                <SelectItem value="derecho">Derecho y Ciencias Políticas</SelectItem>
+                <SelectItem value="enfermeria">Enfermería</SelectItem>
               </SelectContent>
             </Select>
           </div>

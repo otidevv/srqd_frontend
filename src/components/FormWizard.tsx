@@ -76,16 +76,11 @@ export function FormWizard({ formType, isOpen, onClose }: FormWizardProps) {
     setIsSubmitting(true)
 
     try {
-      console.log('=== Iniciando envío del formulario ===')
-      console.log('Datos completos:', completeData)
-
       // Show creating caso toast
       toast.loading('Creando caso...', { id: 'creating-caso' })
 
       // Crear el caso usando la API
-      console.log('Llamando a createCaso...')
       const result = await createCaso(completeData)
-      console.log('Resultado de createCaso:', result)
 
       // Dismiss creating toast and show success
       toast.dismiss('creating-caso')
@@ -98,31 +93,20 @@ export function FormWizard({ formType, isOpen, onClose }: FormWizardProps) {
 
       // Guardar el código de seguimiento
       setTrackingCode(result.codigo)
-      console.log('Código de seguimiento:', result.codigo)
 
       // Generar y descargar el PDF con la firma
-      console.log('Generando PDF...')
-      console.log('Firma base64:', finalData.firmaBase64 ? 'Presente' : 'No presente')
-      console.log('Archivo firma:', finalData.archivoFirma ? finalData.archivoFirma.name : 'No presente')
-
       const pdfData = await generateAndDownloadCasoPDF(
         result.caso,
         finalData.firmaBase64,
         finalData.archivoFirma
       )
 
-      console.log('PDF generado exitosamente')
-
       // Subir el PDF al servidor también
-      console.log('Subiendo PDF al servidor...')
       const { uploadFile } = await import('@/shared/api/archivos')
       const pdfFile = new File([pdfData.blob], pdfData.filename, { type: 'application/pdf' })
       const uploadResult = await uploadFile(result.caso.id, pdfFile)
 
-      if (uploadResult.success) {
-        console.log('PDF subido exitosamente al servidor')
-        console.log('El servidor enviará la constancia por correo automáticamente si el usuario autorizó')
-      } else {
+      if (!uploadResult.success) {
         console.error('Error al subir PDF:', uploadResult.error)
       }
 
@@ -130,8 +114,7 @@ export function FormWizard({ formType, isOpen, onClose }: FormWizardProps) {
       setSubmitSuccess(true)
 
     } catch (error: any) {
-      console.error('=== Error en handleFinish ===')
-      console.error('Error completo:', error)
+      console.error('Error en handleFinish:', error)
 
       // Parse validation errors from backend
       let errorMessage = 'Error al enviar el formulario'
@@ -247,12 +230,12 @@ export function FormWizard({ formType, isOpen, onClose }: FormWizardProps) {
             <div className="flex gap-3">
               <Button
                 onClick={() => {
-                  window.location.href = '/consulta'
+                  window.location.href = '/consulta-publica'
                 }}
                 variant="outline"
                 className="flex-1"
               >
-                Consultar Estado
+                Consultar Estado gagag
               </Button>
               <Button
                 onClick={handleClose}

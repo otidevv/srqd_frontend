@@ -215,13 +215,6 @@ class CasosApi {
         (data.apellidoPaternoReclamado && data.apellidoPaternoReclamado.trim() !== '') ||
         (data.apellidoMaternoReclamado && data.apellidoMaternoReclamado.trim() !== '');
 
-      console.log('=== VALIDACION RECLAMADO ===');
-      console.log('nombresReclamado:', data.nombresReclamado, 'tipo:', typeof data.nombresReclamado);
-      console.log('apellidoPaternoReclamado:', data.apellidoPaternoReclamado);
-      console.log('apellidoMaternoReclamado:', data.apellidoMaternoReclamado);
-      console.log('hasReclamadoData:', hasReclamadoData);
-      console.log('========================');
-
       const payload: any = {
         tipo: data.tipo.toUpperCase(),
         prioridad: 'MEDIA', // Default priority
@@ -277,8 +270,6 @@ class CasosApi {
             return value !== undefined && value !== null && value !== '';
           })
         );
-
-        console.log('Reclamado payload (filtered):', payload.reclamado);
       }
 
       const response = await apiClient.post<ApiResponse<BackendCaso>>('/casos', payload);
@@ -337,18 +328,13 @@ class CasosApi {
 
       // Upload all files with their categories
       if (filesToUpload.length > 0) {
-        console.log(`Uploading ${filesToUpload.length} files for caso ${casoId}:`, filesToUpload.map(f => `${f.file.name} (${f.categoria})`));
         const uploadResult = await uploadFiles(casoId, filesToUpload);
 
         if (!uploadResult.success) {
           console.error('Some files failed to upload:', uploadResult.errors);
           // Don't fail the whole operation, just log the errors
           // The caso was created successfully
-        } else {
-          console.log(`Successfully uploaded ${uploadResult.uploaded} files`);
         }
-      } else {
-        console.log('No files to upload for this caso');
       }
 
       return {

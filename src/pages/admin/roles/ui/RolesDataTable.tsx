@@ -96,7 +96,14 @@ function DragHandle({ id }: { id: string }) {
   )
 }
 
-const columns: ColumnDef<Role>[] = [
+interface RolesDataTableProps {
+  onCreateRole?: () => void;
+  onEditRole?: (role: Role) => void;
+  onViewUsers?: (role: Role) => void;
+  onDeleteRole?: (role: Role) => void;
+}
+
+const createColumns = (props: RolesDataTableProps): ColumnDef<Role>[] => [
   {
     id: "drag",
     header: () => null,
@@ -218,11 +225,11 @@ const columns: ColumnDef<Role>[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => props.onEditRole?.(row.original)}>
             <IconEdit className="size-4 mr-2" />
             Editar Permisos
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => props.onViewUsers?.(row.original)}>
             <IconUsers className="size-4 mr-2" />
             Ver Usuarios
           </DropdownMenuItem>
@@ -230,6 +237,7 @@ const columns: ColumnDef<Role>[] = [
           <DropdownMenuItem
             variant="destructive"
             disabled={row.original.isSystem}
+            onClick={() => props.onDeleteRole?.(row.original)}
           >
             <IconTrash className="size-4 mr-2" />
             Eliminar
@@ -265,7 +273,7 @@ function DraggableRow({ row }: { row: Row<Role> }) {
   )
 }
 
-export function RolesDataTable() {
+export function RolesDataTable(props: RolesDataTableProps = {}) {
   const [data, setData] = React.useState<Role[]>([])
   const [loading, setLoading] = React.useState(true)
   const [rowSelection, setRowSelection] = React.useState({})
@@ -282,6 +290,8 @@ export function RolesDataTable() {
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
+
+  const columns = React.useMemo(() => createColumns(props), [props])
 
   React.useEffect(() => {
     const loadRoles = async () => {
@@ -394,7 +404,7 @@ export function RolesDataTable() {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm">
+          <Button size="sm" onClick={props.onCreateRole}>
             <IconPlus />
             <span className="hidden lg:inline">Nuevo Rol</span>
           </Button>

@@ -1,10 +1,9 @@
 "use client"
 
 import {
-  IconCreditCard,
   IconDotsVertical,
+  IconKey,
   IconLogout,
-  IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react"
 
@@ -29,10 +28,12 @@ import {
   useSidebar,
 } from '@/shared/ui/sidebar'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { useNavigate } from 'react-router-dom'
 
 export function NavUser() {
   const { isMobile } = useSidebar()
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
   if (!user) return null
 
@@ -86,17 +87,13 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <IconUserCircle />
-                Mi Perfil
+                Ver Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Configuración
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notificaciones
+              <DropdownMenuItem onClick={() => navigate('/change-password')}>
+                <IconKey />
+                Cambiar Contraseña
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

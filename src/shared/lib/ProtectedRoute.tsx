@@ -1,16 +1,23 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/app/providers";
+import { usePermissions, type PermissionModule, type PermissionAction } from "./usePermissions";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredPermission?: {
+    module: PermissionModule;
+    action: PermissionAction;
+  };
 }
 
 /**
  * ProtectedRoute component
  * Redirects to login if user is not authenticated
+ * Redirects to unauthorized if user doesn't have required permission
  */
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requiredPermission }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
+  const { hasPermission } = usePermissions();
 
   if (isLoading) {
     return (
@@ -25,6 +32,14 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check permission if required
+  if (requiredPermission) {
+    const { module, action } = requiredPermission;
+    if (!hasPermission(module, action)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <>{children}</>;

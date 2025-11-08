@@ -4,8 +4,6 @@ import {
   IconChevronRight,
   IconKey,
   IconLogout,
-  IconSettings,
-  IconUser,
   IconUserCircle,
 } from "@tabler/icons-react"
 
@@ -98,16 +96,12 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => onNavigate("/profile")}>
-                <IconUser />
+                <IconUserCircle />
                 Ver Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onNavigate("/profile/password")}>
+              <DropdownMenuItem onClick={() => onNavigate("/change-password")}>
                 <IconKey />
                 Cambiar Contraseña
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onNavigate("/settings")}>
-                <IconSettings />
-                Configuración
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

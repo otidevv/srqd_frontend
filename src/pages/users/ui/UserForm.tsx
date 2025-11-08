@@ -1,5 +1,9 @@
-import { useState } from "react";
-import type { User, CreateUserDTO, UpdateUserDTO, UserRole, UserStatus } from "@/entities/user";
+import { useState, useEffect } from "react";
+import type { User, CreateUserDTO, UpdateUserDTO, UserStatus, TipoDocumento } from "@/entities/user";
+import type { Role } from "@/entities/role";
+import type { Sede } from "@/entities/sede";
+import type { Dependencia } from "@/entities/dependencia";
+import { rolesApi, sedesApi, dependenciasApi } from "@/shared/api";
 import {
   Button,
   Input,
@@ -19,16 +23,44 @@ interface UserFormProps {
 
 export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   const [loading, setLoading] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [sedes, setSedes] = useState<Sede[]>([]);
+  const [dependencias, setDependencias] = useState<Dependencia[]>([]);
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    role: user?.role || "operator" as UserRole,
+    roleId: user?.roleId || "",
     status: user?.status || "active" as UserStatus,
     phone: user?.phone || "",
     password: "",
+    tipoDocumento: user?.tipoDocumento,
+    numeroDocumento: user?.numeroDocumento || "",
+    fechaNacimiento: user?.fechaNacimiento ? user.fechaNacimiento.split('T')[0] : "",
+    direccion: user?.direccion || "",
+    cargo: user?.cargo || "",
+    sedeId: user?.sedeId,
+    dependenciaId: user?.dependenciaId,
   });
 
   const isEditing = !!user;
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [rolesData, sedesData, dependenciasData] = await Promise.all([
+          rolesApi.getRoles(),
+          sedesApi.getSedes(),
+          dependenciasApi.getDependencias(),
+        ]);
+        setRoles(rolesData);
+        setSedes(sedesData);
+        setDependencias(dependenciasData);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,9 +71,16 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         const updateData: UpdateUserDTO = {
           name: formData.name,
           email: formData.email,
-          role: formData.role,
+          roleId: formData.roleId,
           status: formData.status,
           phone: formData.phone || undefined,
+          tipoDocumento: formData.tipoDocumento,
+          numeroDocumento: formData.numeroDocumento || undefined,
+          fechaNacimiento: formData.fechaNacimiento || undefined,
+          direccion: formData.direccion || undefined,
+          cargo: formData.cargo || undefined,
+          sedeId: formData.sedeId || undefined,
+          dependenciaId: formData.dependenciaId || undefined,
         };
 
         if (formData.password) {
@@ -53,10 +92,17 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
         const createData: CreateUserDTO = {
           name: formData.name,
           email: formData.email,
-          role: formData.role,
+          roleId: formData.roleId,
           status: formData.status,
           phone: formData.phone || undefined,
           password: formData.password,
+          tipoDocumento: formData.tipoDocumento,
+          numeroDocumento: formData.numeroDocumento || undefined,
+          fechaNacimiento: formData.fechaNacimiento || undefined,
+          direccion: formData.direccion || undefined,
+          cargo: formData.cargo || undefined,
+          sedeId: formData.sedeId || undefined,
+          dependenciaId: formData.dependenciaId || undefined,
         };
 
         await onSubmit(createData);
@@ -69,9 +115,9 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Form Fields */}
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Name */}
-        <div className="space-y-2">
+        <div className="space-y-2 md:col-span-2">
           <Label htmlFor="name">Nombre Completo *</Label>
           <Input
             id="name"
@@ -96,27 +142,36 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           />
         </div>
 
+        {/* Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="phone">Teléfono</Label>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder="+51 982 123 456"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          />
+        </div>
+
         {/* Role */}
         <div className="space-y-2">
           <Label htmlFor="role">Rol *</Label>
           <Select
-            value={formData.role}
-            onValueChange={(value) => setFormData({ ...formData, role: value as UserRole })}
+            value={formData.roleId}
+            onValueChange={(value) => setFormData({ ...formData, roleId: value })}
           >
             <SelectTrigger id="role">
-              <SelectValue />
+              <SelectValue placeholder="Selecciona un rol" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">Administrador</SelectItem>
-              <SelectItem value="supervisor">Supervisor</SelectItem>
-              <SelectItem value="operator">Operador</SelectItem>
+              {roles.map((role) => (
+                <SelectItem key={role.id} value={role.id}>
+                  {role.name} {role.isSystem && "(Sistema)"}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">
-            {formData.role === "admin" && "Acceso completo a todas las funciones del sistema"}
-            {formData.role === "supervisor" && "Puede gestionar trabajadores y revisar reportes"}
-            {formData.role === "operator" && "Puede registrar asistencias y ver información básica"}
-          </p>
         </div>
 
         {/* Status */}
@@ -137,20 +192,131 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
           </Select>
         </div>
 
-        {/* Phone */}
+        {/* Tipo de Documento */}
         <div className="space-y-2">
-          <Label htmlFor="phone">Teléfono</Label>
+          <Label htmlFor="tipoDocumento">Tipo de Documento</Label>
+          <Select
+            value={formData.tipoDocumento || "none"}
+            onValueChange={(value) =>
+              setFormData({
+                ...formData,
+                tipoDocumento: value === "none" ? undefined : (value as TipoDocumento),
+              })
+            }
+          >
+            <SelectTrigger id="tipoDocumento">
+              <SelectValue placeholder="Selecciona tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sin especificar</SelectItem>
+              <SelectItem value="DNI">DNI</SelectItem>
+              <SelectItem value="CARNET_EXTRANJERIA">Carnet Extranjería</SelectItem>
+              <SelectItem value="PASAPORTE">Pasaporte</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Número de Documento */}
+        <div className="space-y-2">
+          <Label htmlFor="numeroDocumento">Nº Documento</Label>
           <Input
-            id="phone"
-            type="tel"
-            placeholder="+51 982 123 456"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            id="numeroDocumento"
+            type="text"
+            placeholder="Ej: 12345678"
+            value={formData.numeroDocumento}
+            onChange={(e) => setFormData({ ...formData, numeroDocumento: e.target.value })}
+          />
+        </div>
+
+        {/* Fecha de Nacimiento */}
+        <div className="space-y-2">
+          <Label htmlFor="fechaNacimiento">Fecha Nacimiento</Label>
+          <Input
+            id="fechaNacimiento"
+            type="date"
+            value={formData.fechaNacimiento}
+            onChange={(e) => setFormData({ ...formData, fechaNacimiento: e.target.value })}
+          />
+        </div>
+
+        {/* Cargo */}
+        <div className="space-y-2">
+          <Label htmlFor="cargo">Cargo</Label>
+          <Input
+            id="cargo"
+            type="text"
+            placeholder="Ej: Analista"
+            value={formData.cargo}
+            onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
+          />
+        </div>
+
+        {/* Sede */}
+        <div className="space-y-2">
+          <Label htmlFor="sede">Sede</Label>
+          <Select
+            value={formData.sedeId || "none"}
+            onValueChange={(value) =>
+              setFormData({
+                ...formData,
+                sedeId: value === "none" ? undefined : value,
+              })
+            }
+          >
+            <SelectTrigger id="sede">
+              <SelectValue placeholder="Selecciona sede" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sin especificar</SelectItem>
+              {sedes.map((sede) => (
+                <SelectItem key={sede.id} value={sede.id}>
+                  {sede.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Dependencia */}
+        <div className="space-y-2">
+          <Label htmlFor="dependencia">Dependencia</Label>
+          <Select
+            value={formData.dependenciaId || "none"}
+            onValueChange={(value) =>
+              setFormData({
+                ...formData,
+                dependenciaId: value === "none" ? undefined : value,
+              })
+            }
+          >
+            <SelectTrigger id="dependencia">
+              <SelectValue placeholder="Selecciona dependencia" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Sin especificar</SelectItem>
+              {dependencias.map((dep) => (
+                <SelectItem key={dep.id} value={dep.id}>
+                  {dep.nombre}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Dirección */}
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="direccion">Dirección</Label>
+          <Input
+            id="direccion"
+            type="text"
+            placeholder="Ej: Jr. Los Incas 123"
+            value={formData.direccion}
+            onChange={(e) => setFormData({ ...formData, direccion: e.target.value })}
           />
         </div>
 
         {/* Password */}
-        <div className="space-y-2">
+        <div className="space-y-2 md:col-span-2">
           <Label htmlFor="password">
             {isEditing ? "Nueva Contraseña (dejar en blanco para mantener)" : "Contraseña *"}
           </Label>

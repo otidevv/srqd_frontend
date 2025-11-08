@@ -21,46 +21,16 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ACCEPTED_FILE_TYPES = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
 
 const step1Schema = z.object({
-  rolReclamante: z.string({
-    required_error: 'Debe seleccionar un rol',
-    invalid_type_error: 'Debe seleccionar un rol'
-  }).min(1, 'Debe seleccionar un rol'),
-  tipoDocumento: z.string({
-    required_error: 'Debe seleccionar un tipo de documento',
-    invalid_type_error: 'Debe seleccionar un tipo de documento'
-  }).min(1, 'Debe seleccionar un tipo de documento'),
-  numeroDocumento: z.string({
-    required_error: 'El número de documento es obligatorio',
-    invalid_type_error: 'El número de documento debe ser texto'
-  }).min(8, 'El número de documento debe tener al menos 8 caracteres'),
-  nombres: z.string({
-    required_error: 'Los nombres son obligatorios',
-    invalid_type_error: 'Los nombres deben ser texto'
-  }).min(1, 'Los nombres son obligatorios'),
-  apellidoPaterno: z.string({
-    required_error: 'El apellido paterno es obligatorio',
-    invalid_type_error: 'El apellido paterno debe ser texto'
-  }).min(1, 'El apellido paterno es obligatorio'),
-  apellidoMaterno: z.string({
-    required_error: 'El apellido materno es obligatorio',
-    invalid_type_error: 'El apellido materno debe ser texto'
-  }).min(1, 'El apellido materno es obligatorio'),
-  sexo: z.string({
-    required_error: 'Debe seleccionar el sexo',
-    invalid_type_error: 'Debe seleccionar el sexo'
-  }).min(1, 'Debe seleccionar el sexo'),
-  celular: z.string({
-    required_error: 'El celular es obligatorio',
-    invalid_type_error: 'El celular debe ser texto'
-  }).min(9, 'El celular debe tener al menos 9 dígitos'),
-  domicilio: z.string({
-    required_error: 'El domicilio es obligatorio',
-    invalid_type_error: 'El domicilio debe ser texto'
-  }).min(1, 'El domicilio es obligatorio'),
-  correo: z.string({
-    required_error: 'El correo electrónico es obligatorio',
-    invalid_type_error: 'El correo electrónico debe ser texto'
-  }).email('El correo electrónico no es válido'),
+  rolReclamante: z.string().min(1, 'Debe seleccionar un rol'),
+  tipoDocumento: z.string().min(1, 'Debe seleccionar un tipo de documento'),
+  numeroDocumento: z.string().min(8, 'El número de documento debe tener al menos 8 caracteres'),
+  nombres: z.string().min(1, 'Los nombres son obligatorios'),
+  apellidoPaterno: z.string().min(1, 'El apellido paterno es obligatorio'),
+  apellidoMaterno: z.string().min(1, 'El apellido materno es obligatorio'),
+  sexo: z.string().min(1, 'Debe seleccionar el sexo'),
+  celular: z.string().min(9, 'El celular debe tener al menos 9 dígitos'),
+  domicilio: z.string().min(1, 'El domicilio es obligatorio'),
+  correo: z.string().email('El correo electrónico no es válido'),
   autorizacionCorreo: z.boolean().refine((val) => val === true, {
     message: 'Debe autorizar la notificación por correo electrónico'
   }),
@@ -205,10 +175,38 @@ export function Step1ReclamanteForm({ formData, onNext }: Step1Props) {
   const tipoDocumento = watch('tipoDocumento')
   const numeroDocumento = watch('numeroDocumento')
   const sexo = watch('sexo')
+  const facultad = watch('facultad')
   const [fileError, setFileError] = useState<string | null>(null)
   const [consultandoDNI, setConsultandoDNI] = useState(false)
   const [dniConsultado, setDniConsultado] = useState<string | null>(null)
   const [mostrarMensajeConsultado, setMostrarMensajeConsultado] = useState(false)
+
+  // Mapeo de facultades y departamentos
+  const departamentosPorFacultad: Record<string, { value: string; label: string }[]> = {
+    ingenieria: [
+      { value: 'sistemas', label: 'Sistemas e Informática' },
+      { value: 'agroindustrial', label: 'Agroindustrial' },
+      { value: 'forestal', label: 'Forestal y Medio Ambiente' },
+      { value: 'ciencias_basicas', label: 'Ciencias Básicas' },
+      { value: 'veterinaria', label: 'Veterinaria y Zootecnia' },
+    ],
+    ciencias_empresariales: [
+      { value: 'dep_admi_conta', label: 'Departamento de Administración y Contabilidad' },
+      { value: 'ecoturismo', label: 'Ecoturismo' },
+    ],
+    educacion: [
+      { value: 'educacion', label: 'Educación (Inicial, Matemática y Primaria)' },
+      { value: 'derecho', label: 'Derecho y Ciencias Políticas' },
+      { value: 'enfermeria', label: 'Enfermería' },
+    ],
+  }
+
+  // Limpiar departamento cuando cambia la facultad
+  useEffect(() => {
+    if (rolReclamante === 'docente' && facultad) {
+      setValue('departamentoAcademico', '')
+    }
+  }, [facultad, rolReclamante, setValue])
 
   // Validar archivo cuando cambia
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,7 +246,8 @@ export function Step1ReclamanteForm({ formData, onNext }: Step1Props) {
 
     setConsultandoDNI(true)
     try {
-      const response = await fetch(`http://localhost:3000/api/dni/consulta/${dni}`)
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+      const response = await fetch(`${API_URL}/dni/consulta/${dni}`)
 
       if (!response.ok) {
         throw new Error('DNI no encontrado')
@@ -663,12 +662,13 @@ export function Step1ReclamanteForm({ formData, onNext }: Step1Props) {
       {rolReclamante === 'docente' && (
         <div className="border-t pt-4 space-y-4">
           <p className="text-sm font-semibold text-primary">Información Académica</p>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>
                 Facultad <span className="text-red-500">*</span>
               </Label>
               <Select
+                value={facultad}
                 onValueChange={(value) => {
                   setValue('facultad', value)
                   trigger('facultad')
@@ -680,8 +680,8 @@ export function Step1ReclamanteForm({ formData, onNext }: Step1Props) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ingenieria">Facultad de Ingeniería</SelectItem>
+                  <SelectItem value="ciencias_empresariales">Facultad de Ciencias Empresariales</SelectItem>
                   <SelectItem value="educacion">Facultad de Educación</SelectItem>
-                  <SelectItem value="derecho">Facultad de Derecho</SelectItem>
                 </SelectContent>
               </Select>
               {errors.facultad && (
@@ -693,19 +693,23 @@ export function Step1ReclamanteForm({ formData, onNext }: Step1Props) {
                 Departamento Académico <span className="text-red-500">*</span>
               </Label>
               <Select
+                value={watch('departamentoAcademico')}
                 onValueChange={(value) => {
                   setValue('departamentoAcademico', value)
                   trigger('departamentoAcademico')
                 }}
                 defaultValue={formData.departamentoAcademico}
+                disabled={!facultad}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccione departamento" />
+                  <SelectValue placeholder={facultad ? "Seleccione departamento" : "Primero seleccione una facultad"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sistemas">Sistemas e Informática</SelectItem>
-                  <SelectItem value="forestal">Forestal y Medio Ambiente</SelectItem>
-                  <SelectItem value="derecho">Derecho y Ciencias Políticas</SelectItem>
+                  {facultad && departamentosPorFacultad[facultad]?.map((dept) => (
+                    <SelectItem key={dept.value} value={dept.value}>
+                      {dept.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {errors.departamentoAcademico && (

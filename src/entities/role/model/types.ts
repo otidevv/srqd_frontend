@@ -6,13 +6,10 @@
 export type PermissionAction = "read" | "create" | "edit" | "delete" | "export";
 
 export type PermissionModule =
+  | "casos"
   | "users"
-  | "workers"
-  | "attendance"
-  | "schedules"
-  | "devices"
-  | "reports"
-  | "stats"
+  | "publicaciones"
+  | "estadisticas"
   | "roles"
   | "sedes"
   | "dependencias";
@@ -63,13 +60,10 @@ export interface UpdateRoleDTO {
  * Available permissions by module
  */
 export const AVAILABLE_PERMISSIONS: Record<PermissionModule, PermissionAction[]> = {
+  casos: ["read", "create", "edit", "delete", "export"],
   users: ["read", "create", "edit", "delete"],
-  workers: ["read", "create", "edit", "delete", "export"],
-  attendance: ["read", "create", "edit", "delete", "export"],
-  schedules: ["read", "create", "edit", "delete"],
-  devices: ["read", "create", "edit", "delete"],
-  reports: ["read", "create", "export"],
-  stats: ["read"],
+  publicaciones: ["read", "create", "edit", "delete"],
+  estadisticas: ["read", "export"],
   roles: ["read", "create", "edit", "delete"],
   sedes: ["read", "create", "edit", "delete"],
   dependencias: ["read", "create", "edit", "delete"],
@@ -79,13 +73,10 @@ export const AVAILABLE_PERMISSIONS: Record<PermissionModule, PermissionAction[]>
  * Module labels for UI
  */
 export const MODULE_LABELS: Record<PermissionModule, string> = {
+  casos: "Casos SRQD (Reclamos, Quejas, Denuncias)",
   users: "Usuarios del Sistema",
-  workers: "Trabajadores",
-  attendance: "Asistencias",
-  schedules: "Horarios",
-  devices: "Dispositivos ZKTeco",
-  reports: "Reportes",
-  stats: "Estadísticas",
+  publicaciones: "Publicaciones y Anuncios",
+  estadisticas: "Estadísticas y Reportes",
   roles: "Roles y Privilegios",
   sedes: "Sedes",
   dependencias: "Dependencias",

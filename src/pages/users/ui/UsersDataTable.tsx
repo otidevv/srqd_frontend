@@ -95,8 +95,9 @@ import {
   TableRow,
 } from '@/shared/ui'
 
-import { type User, type UserRole, type UserStatus, type CreateUserDTO, type UpdateUserDTO } from "@/entities/user"
+import { type User, type UserStatus, type CreateUserDTO, type UpdateUserDTO } from "@/entities/user"
 import { usersApi } from "@/shared/api"
+import { usePermissions } from "@/shared/lib"
 import { UserForm } from "./UserForm"
 
 // Create a separate component for the drag handle
@@ -117,48 +118,6 @@ function DragHandle({ id }: { id: string }) {
       <span className="sr-only">Drag to reorder</span>
     </Button>
   )
-}
-
-// Get badge variant for role
-function getRoleBadgeVariant(role: UserRole) {
-  switch (role) {
-    case "admin":
-      return "default"
-    case "supervisor":
-      return "secondary"
-    case "operator":
-      return "outline"
-    default:
-      return "outline"
-  }
-}
-
-// Get role icon
-function getRoleIcon(role: UserRole) {
-  switch (role) {
-    case "admin":
-      return IconShield
-    case "supervisor":
-      return IconUserCheck
-    case "operator":
-      return IconUser
-    default:
-      return IconUser
-  }
-}
-
-// Get role label
-function getRoleLabel(role: UserRole) {
-  switch (role) {
-    case "admin":
-      return "Administrador"
-    case "supervisor":
-      return "Supervisor"
-    case "operator":
-      return "Operador"
-    default:
-      return role
-  }
 }
 
 // Get badge variant for status
@@ -264,13 +223,18 @@ const columns: ColumnDef<User>[] = [
     accessorKey: "role",
     header: "Rol",
     cell: ({ row }) => {
-      const RoleIcon = getRoleIcon(row.original.role)
+      const role = row.original.role
       return (
         <div className="flex items-center gap-2">
-          <RoleIcon className="size-4 text-muted-foreground" />
-          <Badge variant={getRoleBadgeVariant(row.original.role)}>
-            {getRoleLabel(row.original.role)}
-          </Badge>
+          <IconShield className="size-4 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium">{role.name}</span>
+            {role.isSystem && (
+              <Badge variant="secondary" className="text-xs">
+                Sistema
+              </Badge>
+            )}
+          </div>
         </div>
       )
     },
@@ -317,18 +281,27 @@ const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     cell: ({ row, table }) => {
+      const meta = table.options.meta as any
+      const hasPermission = meta?.hasPermission || (() => false)
+
       const handleEdit = () => {
-        const meta = table.options.meta as any
         meta?.onEditUser?.(row.original)
       }
       const handleDelete = () => {
-        const meta = table.options.meta as any
         meta?.onDeleteUser?.(row.original)
       }
       const handleChangePassword = () => {
-        const meta = table.options.meta as any
         meta?.onChangePassword?.(row.original)
       }
+
+      const canEdit = hasPermission('users', 'edit')
+      const canDelete = hasPermission('users', 'delete')
+
+      // Only show menu if user has at least one permission
+      if (!canEdit && !canDelete) {
+        return null
+      }
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -342,19 +315,25 @@ const columns: ColumnDef<User>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleEdit}>
-              <IconEdit className="size-4 mr-2" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleChangePassword}>
-              <IconKey className="size-4 mr-2" />
-              Cambiar Contraseña
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleDelete}>
-              <IconTrash className="size-4 mr-2" />
-              Eliminar
-            </DropdownMenuItem>
+            {canEdit && (
+              <>
+                <DropdownMenuItem onClick={handleEdit}>
+                  <IconEdit className="size-4 mr-2" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleChangePassword}>
+                  <IconKey className="size-4 mr-2" />
+                  Cambiar Contraseña
+                </DropdownMenuItem>
+              </>
+            )}
+            {canEdit && canDelete && <DropdownMenuSeparator />}
+            {canDelete && (
+              <DropdownMenuItem variant="destructive" onClick={handleDelete}>
+                <IconTrash className="size-4 mr-2" />
+                Eliminar
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -388,6 +367,7 @@ function DraggableRow({ row }: { row: Row<User> }) {
 }
 
 export function UsersDataTable() {
+  const { hasPermission } = usePermissions()
   const [data, setData] = React.useState<User[]>([])
   const [loading, setLoading] = React.useState(true)
   const [rowSelection, setRowSelection] = React.useState({})
@@ -589,6 +569,7 @@ export function UsersDataTable() {
       onEditUser: handleEditUser,
       onDeleteUser: handleDeleteClick,
       onChangePassword: handleChangePasswordClick,
+      hasPermission,
     },
   })
 
@@ -692,10 +673,12 @@ export function UsersDataTable() {
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button size="sm" className="flex-1 lg:flex-none" onClick={() => setIsCreateDialogOpen(true)}>
-            <IconPlus className="size-4" />
-            <span className="ml-2">Nuevo Usuario</span>
-          </Button>
+          {hasPermission('users', 'create') && (
+            <Button size="sm" className="flex-1 lg:flex-none" onClick={() => setIsCreateDialogOpen(true)}>
+              <IconPlus className="size-4" />
+              <span className="ml-2">Nuevo Usuario</span>
+            </Button>
+          )}
         </div>
       </div>
 

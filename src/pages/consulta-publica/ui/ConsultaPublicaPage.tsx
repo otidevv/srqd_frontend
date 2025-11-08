@@ -86,7 +86,8 @@ export function ConsultaPublicaPage() {
 
   const handleDescargarArchivo = (archivoId: string, nombreArchivo: string) => {
     // Construir URL de descarga
-    const url = `http://localhost:3000/api/archivos/${archivoId}/download`;
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+    const url = `${API_URL}/archivos/${archivoId}/download`;
 
     // Crear link temporal y hacer click
     const link = document.createElement('a');
