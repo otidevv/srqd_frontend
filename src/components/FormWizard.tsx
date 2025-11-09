@@ -235,7 +235,7 @@ export function FormWizard({ formType, isOpen, onClose }: FormWizardProps) {
                 variant="outline"
                 className="flex-1"
               >
-                Consultar Estado gagag
+                Consultar Estado
               </Button>
               <Button
                 onClick={handleClose}
