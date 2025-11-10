@@ -136,12 +136,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             )}
           </Button>
 
-          {/* Demo credentials */}
-          <div className="mt-6 p-3 bg-muted rounded-md text-xs text-muted-foreground space-y-1">
-            <p className="font-semibold">Credenciales de prueba:</p>
-            <p><strong>Defensor:</strong> defensoria@unamad.edu.pe / defensoria123</p>
-            <p><strong>Admin:</strong> admin@unamad.edu.pe / admin123</p>
-          </div>
+
         </form>
       </CardContent>
     </Card>
