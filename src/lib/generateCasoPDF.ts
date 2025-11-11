@@ -173,7 +173,7 @@ export async function generateCasoPDF({ caso, firmaDataUrl }: GeneratePDFOptions
     ['Rol:', (caso.reclamante.rolReclamante || caso.reclamante.rol || 'N/A').toUpperCase()],
     ['Documento:', `${(caso.reclamante.tipoDocumento || 'N/A').toUpperCase()} - ${caso.reclamante.numeroDocumento || 'N/A'}`],
     ['Nombres completos:', `${caso.reclamante.nombres || ''} ${caso.reclamante.apellidoPaterno || ''} ${caso.reclamante.apellidoMaterno || ''}`.trim()],
-    ['Sexo:', caso.reclamante.sexo === 'M' || caso.reclamante.sexo === 'masculino' ? 'Masculino' : 'Femenino'],
+    ['Sexo:', caso.reclamante.sexo === 'M' || caso.reclamante.sexo === 'masculino' || caso.reclamante.sexo === 'MASCULINO' ? 'Masculino' : 'Femenino'],
     ['Correo electrónico:', caso.reclamante.correo || 'N/A'],
     ['Teléfono/Celular:', caso.reclamante.celular || 'N/A'],
   ]
@@ -240,7 +240,7 @@ export async function generateCasoPDF({ caso, firmaDataUrl }: GeneratePDFOptions
 
     // Solo agregar sexo si existe
     if (caso.reclamado.sexo) {
-      const sexoTexto = caso.reclamado.sexo === 'M' || caso.reclamado.sexo === 'masculino' ? 'Masculino' : 'Femenino'
+      const sexoTexto = caso.reclamado.sexo === 'M' || caso.reclamado.sexo === 'masculino' || caso.reclamado.sexo === 'MASCULINO' ? 'Masculino' : 'Femenino'
       reclamadoData.push(['Sexo:', sexoTexto])
     }
 
